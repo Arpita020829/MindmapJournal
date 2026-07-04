@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MindMate Journal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>🧠 MindMate Journal</h1>
+
+        <p>How are you feeling today?</p>
+
+       <form method="POST">
+
+    <textarea
+        name="journal"
+        placeholder="Write your thoughts here..."
+        required>
+    </textarea>
+
+    <button type="submit">
+        Analyze & Save
+    </button>
+
+</form>
+
+{% if prediction %}
+
+<div class="result-card">
+
+    <h2>Detected Emotion</h2>
+
+    <h3>{{ prediction }}</h3>
+
+    <p>
+        Confidence: {{ confidence }}%
+    </p>
+
+</div>
+
+{% endif %}
+
+    </div>
+<nav>
+    <a href="/">Journal</a>
+    <a href="/history">History</a>
+    <a href="/dashboard">Dashboard</a>
+</nav>
+
+</body>
+</html>

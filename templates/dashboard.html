@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📊 Dashboard</h1>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Entries</h3>
+            <p>{{ total_entries }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Most Common Emotion</h3>
+            <p>{{ most_common }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Average Confidence</h3>
+            <p>{{ avg_confidence }}%</p>
+        </div>
+
+    </div>
+
+    <h2>Emotion Distribution</h2>
+
+    <ul>
+        {% for emotion, count in emotions %}
+            <li>{{ emotion }} : {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Recent Entries</h2>
+
+    {% for emotion, text in recent_entries %}
+
+        <div class="entry-card">
+
+            <h3>{{ emotion }}</h3>
+
+            <p>{{ text }}</p>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

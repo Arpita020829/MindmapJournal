@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <nav class="navbar">
+
+        <h2>🧠 MindMate</h2>
+
+        <div>
+            <a href="/">Journal</a>
+            <a href="/history">History</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+
+    </nav>
+
+    <h1>📚 Journal History</h1>
+
+    {% for entry in entries %}
+
+    <div class="history-card">
+
+        <div class="history-header">
+
+            <span class="emotion-badge">
+                {{ entry[2] }}
+            </span>
+
+            <span class="confidence">
+                {{ entry[3] }}%
+            </span>
+
+        </div>
+
+        <p class="journal-text">
+            {{ entry[4] }}
+        </p>
+
+        <small>
+            {{ entry[1] }}
+        </small>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
