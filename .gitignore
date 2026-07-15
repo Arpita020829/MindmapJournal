@@ -1,0 +1,4 @@
+mental_health_distilbert/
+journal.db
+__pycache__/
+*.pyc

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindMate Journal — Your AI Mental Wellness Companion</title>
+  <meta name="description" content="MindMate Journal: An AI-powered mental wellness diary that detects emotions and offers personalized suggestions using DistilBERT." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- ── Ambient Particles ───────────────────────────────── -->
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- ════════════════════════════════════════════════════
+       LANDING SCENE — Closed Diary
+  ════════════════════════════════════════════════════ -->
+  <div id="closed-diary-view" class="landing-scene">
+
+    <p class="scene-tagline">Your AI-Powered Mental Wellness Companion</p>
+
+    <!-- 3D Book -->
+    <div class="book-scene">
+      <div class="book" id="landing-book" role="presentation">
+
+        <!-- Pages (visible underneath cover) -->
+        <div class="book-pages"></div>
+
+        <!-- Spine -->
+        <div class="book-spine"></div>
+
+        <!-- Cover -->
+        <div class="book-cover" id="book-cover-panel">
+          <div class="cover-texture"></div>
+          <div class="cover-inner-border"></div>
+          <div class="cover-content">
+            <span class="cover-icon">🧠</span>
+            <h1 class="cover-title">MindMate Journal</h1>
+            <p class="cover-subtitle">Your AI Mental Wellness Companion</p>
+            <div class="cover-ornament">
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shadow -->
+        <div class="book-shadow"></div>
+
+      </div>
+    </div>
+
+    <button id="open-journal-btn" class="open-btn" aria-label="Open your journal">
+      <span class="btn-shine"></span>
+      ✨ Open Journal
+    </button>
+
+  </div><!-- /closed-diary-view -->
+
+
+  <!-- ════════════════════════════════════════════════════
+       OPEN BOOK — Two-Page Spread + Journal
+  ════════════════════════════════════════════════════ -->
+  <div id="open-diary-view" class="open-book-wrapper">
+
+    <!-- ── Navigation ── -->
+    <nav class="diary-nav" role="navigation" aria-label="Main navigation">
+      <a href="/" class="diary-nav-brand" id="nav-brand">🧠 MindMate</a>
+      <div class="diary-nav-links">
+        <a href="/"          class="diary-nav-link" id="nav-journal">📖 Journal</a>
+        <a href="/history"   class="diary-nav-link" id="nav-history">📚 History</a>
+        <a href="/dashboard" class="diary-nav-link" id="nav-dashboard">📊 Dashboard</a>
+      </div>
+    </nav>
+
+    <!-- ────────────────────────────────────────────────
+         Show two-page spread only on GET (no prediction yet)
+    ──────────────────────────────────────────────── -->
+    {% if not prediction %}
+
+    <div class="book-spread" role="main" aria-label="Open diary spread">
+
+      <!-- Left Page: Write Journal -->
+      <div class="spread-page left-page">
+        <span class="spread-page-icon">📖</span>
+        <h2 class="spread-page-title">Write Journal</h2>
+        <p class="spread-page-desc">Pour your thoughts onto the page and let AI gently decode your emotional state.</p>
+        <a href="#journal-section" class="spread-btn" id="goto-journal-btn">Start Writing →</a>
+      </div>
+
+      <!-- Right Page: History -->
+      <div class="spread-page right-page">
+        <span class="spread-page-icon">📚</span>
+        <h2 class="spread-page-title">History</h2>
+        <p class="spread-page-desc">Revisit your past entries, track patterns, and see how far you've come.</p>
+        <a href="/history" class="spread-btn" id="goto-history-btn">View Entries →</a>
+      </div>
+
+    </div>
+
+    <!-- Dashboard bookmark tab -->
+    <a href="/dashboard" class="dashboard-tab" id="goto-dashboard-btn">
+      <span class="dashboard-tab-icon">📊</span>
+      <span class="dashboard-tab-text">Open Analytics Dashboard</span>
+      <span style="margin-left:auto; color: var(--amethyst-light); font-size:1.2rem;">→</span>
+    </a>
+
+    {% endif %}
+
+    <!-- ────────────────────────────────────────────────
+         Journal Writing Page (always visible on this route)
+    ──────────────────────────────────────────────── -->
+    <section id="journal-section" class="inner-page-wrapper" style="animation-delay:0.1s;">
+
+      <div class="page-header">
+        <h1>📖 Write in Your Journal</h1>
+        <div class="header-rule"></div>
+      </div>
+
+      <div class="journal-book-page">
+
+        <div class="journal-heading">
+          <span class="pen-icon">🖊️</span>
+          Today's Entry
+        </div>
+        <p class="journal-subheading">How are you feeling today? Write freely — this is your safe space.</p>
+
+        <!-- ── Journal Form (POST to Flask /) ── -->
+        <form method="POST" class="journal-form" id="journal-form">
+
+          <div class="journal-textarea-wrapper">
+            <textarea
+              name="journal"
+              id="journal-textarea"
+              placeholder="Write your thoughts here... Let your feelings flow naturally onto the page. There are no wrong words."
+              required
+              rows="9"
+              aria-label="Journal entry text area"
+            ></textarea>
+          </div>
+
+          <div class="char-counter" id="char-counter">0 characters</div>
+
+          <button type="submit" class="analyze-btn" id="analyze-btn" aria-label="Analyze and save journal entry">
+            <span class="btn-shine"></span>
+            🔍 Analyze &amp; Save
+          </button>
+
+        </form>
+
+        <!-- ── Result: Prediction ── -->
+        {% if prediction %}
+        <div class="result-section">
+
+          <div class="result-card">
+            <h2>Detected Emotion</h2>
+            <div class="result-emotion">{{ prediction }}</div>
+
+            <div class="confidence-bar-wrapper">
+              <p class="confidence-label">Confidence Score</p>
+              <div class="confidence-bar">
+                <div class="confidence-fill" data-width="{{ confidence }}" style="width:0%"></div>
+              </div>
+              <p class="confidence-value">{{ confidence }}%</p>
+            </div>
+          </div>
+
+          {% if suggestion %}
+          <div class="suggestion-card">
+            <h3>A Note for You</h3>
+            <p>{{ suggestion }}</p>
+          </div>
+          {% endif %}
+
+        </div><!-- /result-section -->
+        {% endif %}
+
+      </div><!-- /journal-book-page -->
+
+    </section>
+
+  </div><!-- /open-diary-view -->
+
+</div><!-- /page-wrapper -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+  // Auto-open the book if a prediction was just made
+  {% if prediction %}
+  (function () {
+    const closedView = document.getElementById('closed-diary-view');
+    const openView   = document.getElementById('open-diary-view');
+    if (closedView && openView) {
+      closedView.style.display = 'none';
+      openView.style.display   = 'flex';
+      openView.classList.add('visible');
+    }
+  })();
+  {% endif %}
+
+  // Smooth scroll to journal section when clicking "Start Writing"
+  const gotoJournal = document.getElementById('goto-journal-btn');
+  if (gotoJournal) {
+    gotoJournal.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.getElementById('journal-section').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        const ta = document.getElementById('journal-textarea');
+        if (ta) ta.focus();
+      }, 600);
+    });
+  }
+</script>
+
+</body>
+</html>

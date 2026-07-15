@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Dashboard — MindMate</title>
+  <meta name="description" content="MindMate Dashboard: Visualize your emotion distribution, track total journal entries, and review recent diary snippets." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ── Ambient Particles ───────────────────────────────── -->
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+<div class="page-wrapper" style="justify-content:flex-start; padding-top:2rem;">
+<div class="inner-page-wrapper">
+
+  <!-- ── Navigation ── -->
+  <nav class="diary-nav" role="navigation" aria-label="Main navigation">
+    <a href="/" class="diary-nav-brand" id="nav-brand">🧠 MindMate</a>
+    <div class="diary-nav-links">
+      <a href="/"          class="diary-nav-link" id="nav-journal">📖 Journal</a>
+      <a href="/history"   class="diary-nav-link" id="nav-history">📚 History</a>
+      <a href="/dashboard" class="diary-nav-link" id="nav-dashboard">📊 Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- ── Page Header ── -->
+  <header class="page-header">
+    <h1>📊 Analytics Dashboard</h1>
+    <div class="header-rule"></div>
+  </header>
+
+  <!-- ── Stats Cards ── -->
+  <section class="dashboard-section" aria-label="Summary statistics">
+    <div class="stats-grid">
+
+      <div class="stat-card" id="stat-total-entries">
+        <span class="stat-icon">📝</span>
+        <h3>Total Entries</h3>
+        <p>{{ total_entries }}</p>
+      </div>
+
+      <div class="stat-card" id="stat-most-common">
+        <span class="stat-icon">💭</span>
+        <h3>Most Common Emotion</h3>
+        <p style="font-size:1.5rem;">{{ most_common }}</p>
+      </div>
+
+      <div class="stat-card" id="stat-avg-confidence">
+        <span class="stat-icon">🎯</span>
+        <h3>Average Confidence</h3>
+        <p>{{ avg_confidence }}%</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Emotion Distribution Chart ── -->
+  <section class="dashboard-section" aria-label="Emotion distribution chart">
+    <h2 class="section-title">📈 Emotion Distribution</h2>
+    <div class="chart-container">
+      <canvas id="emotionChart" aria-label="Bar chart showing emotion frequency"></canvas>
+    </div>
+  </section>
+
+  <!-- ── Recent Entries ── -->
+  {% if recent_entries %}
+  <section class="dashboard-section" aria-label="Recent journal entries">
+    <h2 class="section-title">🕐 Recent Entries</h2>
+    <div class="recent-entries-grid">
+
+      {% for emotion, text in recent_entries %}
+      <div class="entry-card" id="recent-entry-{{ loop.index }}">
+        <h3>{{ emotion }}</h3>
+        <p>{{ text }}</p>
+      </div>
+      {% endfor %}
+
+    </div>
+  </section>
+  {% endif %}
+
+</div><!-- /inner-page-wrapper -->
+</div><!-- /page-wrapper -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+/* ── Chart.js Emotion Distribution ───────────────────────── */
+(function () {
+  const labels = {{ labels | tojson | safe }};
+  const counts = {{ counts | tojson | safe }};
+
+  const palette = {
+    'Anxiety':    { bg: 'rgba(245,192,122,0.75)', border: '#C27020' },
+    'Depression': { bg: 'rgba(201,160,224,0.75)', border: '#7B3FA0' },
+    'Stress':     { bg: 'rgba(245,160,160,0.75)', border: '#C02020' },
+    'Normal':     { bg: 'rgba(128,208,160,0.75)', border: '#1A8040' },
+  };
+
+  const bgColors     = labels.map(l => (palette[l] || { bg: 'rgba(185,177,205,0.75)' }).bg);
+  const borderColors = labels.map(l => (palette[l] || { border: '#8E83A9'           }).border);
+
+  const ctx = document.getElementById('emotionChart');
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Number of Entries',
+        data: counts,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: 2,
+        borderRadius: 10,
+        borderSkipped: false,
+        hoverBackgroundColor: bgColors.map(c => c.replace('0.75', '0.95')),
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(62,53,80,0.92)',
+          titleFont: { family: "'Playfair Display', serif", size: 14 },
+          bodyFont:  { family: "'Lora', serif", size: 13 },
+          padding: 12,
+          cornerRadius: 10,
+          displayColors: true,
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} entr${ctx.parsed.y === 1 ? 'y' : 'ies'}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: { family: "'Inter', sans-serif", size: 11 },
+            color: '#7A6E94'
+          },
+          grid: {
+            color: 'rgba(185,177,205,0.25)',
+          },
+          border: { dash: [4, 4] }
+        },
+        x: {
+          ticks: {
+            font: { family: "'Lora', serif", size: 12, weight: '600' },
+            color: '#5C5278'
+          },
+          grid: { display: false }
+        }
+      },
+      animation: {
+        duration: 1400,
+        easing: 'easeOutQuart'
+      }
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journal History — MindMate</title>
+  <meta name="description" content="Browse your past MindMate journal entries, filter by detected emotion, and track your mental wellness journey." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- ── Ambient Particles ───────────────────────────────── -->
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+<div class="page-wrapper" style="justify-content:flex-start; padding-top:2rem;">
+<div class="inner-page-wrapper">
+
+  <!-- ── Navigation ── -->
+  <nav class="diary-nav" role="navigation" aria-label="Main navigation">
+    <a href="/" class="diary-nav-brand" id="nav-brand">🧠 MindMate</a>
+    <div class="diary-nav-links">
+      <a href="/"          class="diary-nav-link" id="nav-journal">📖 Journal</a>
+      <a href="/history"   class="diary-nav-link" id="nav-history">📚 History</a>
+      <a href="/dashboard" class="diary-nav-link" id="nav-dashboard">📊 Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- ── Page Header ── -->
+  <header class="page-header">
+    <h1>📚 Journal History</h1>
+    <div class="header-rule"></div>
+  </header>
+
+  <!-- ── Filter Form ── -->
+  <form method="GET" class="history-filter-bar" id="filter-form" aria-label="Filter entries by emotion">
+    <span class="filter-label">Filter by</span>
+
+    <select name="emotion" id="emotion-filter" aria-label="Select emotion to filter">
+      <option value="All">All Emotions</option>
+
+      <option value="Anxiety"
+        {% if selected_emotion == "Anxiety" %}selected{% endif %}>
+        Anxiety
+      </option>
+
+      <option value="Depression"
+        {% if selected_emotion == "Depression" %}selected{% endif %}>
+        Depression
+      </option>
+
+      <option value="Stress"
+        {% if selected_emotion == "Stress" %}selected{% endif %}>
+        Stress
+      </option>
+
+      <option value="Normal"
+        {% if selected_emotion == "Normal" %}selected{% endif %}>
+        Normal
+      </option>
+    </select>
+
+    <button type="submit" class="filter-btn" id="filter-submit-btn">Apply Filter</button>
+  </form>
+
+  <!-- ── History Cards ── -->
+  {% if entries %}
+  <div class="history-grid" role="list" aria-label="Journal entries">
+
+    {% for entry in entries %}
+    {#
+      entry[0] = id
+      entry[1] = created_at
+      entry[2] = prediction (emotion)
+      entry[3] = confidence
+      entry[4] = entry_text
+    #}
+    <article class="history-card" role="listitem" aria-label="Journal entry {{ loop.index }}">
+
+      <div class="history-header">
+
+        <span class="emotion-badge" aria-label="Emotion: {{ entry[2] }}">
+          {{ entry[2] }}
+        </span>
+
+        <span class="confidence" aria-label="Confidence: {{ entry[3] }}%">
+          {{ entry[3] }}% confidence
+        </span>
+
+      </div>
+
+      <p class="journal-text">{{ entry[4] }}</p>
+
+      <span class="entry-date">📅 {{ entry[1] }}</span>
+
+      <div class="card-footer">
+        <span style="font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--amethyst-light);">
+          Entry #{{ entry[0] }}
+        </span>
+
+        <a href="/delete/{{ entry[0] }}"
+           class="delete-btn"
+           id="delete-btn-{{ entry[0] }}"
+           aria-label="Delete entry {{ entry[0] }}">
+          🗑 Delete
+        </a>
+      </div>
+
+    </article>
+    {% endfor %}
+
+  </div><!-- /history-grid -->
+
+  {% else %}
+
+  <div class="no-entries" role="status">
+    <span class="no-entries-icon">📭</span>
+    {% if selected_emotion and selected_emotion != "All" %}
+      No entries found for <strong>{{ selected_emotion }}</strong>. Try a different filter.
+    {% else %}
+      Your diary is empty. <a href="/" style="color:var(--amethyst-deep);">Write your first entry →</a>
+    {% endif %}
+  </div>
+
+  {% endif %}
+
+</div><!-- /inner-page-wrapper -->
+</div><!-- /page-wrapper -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
